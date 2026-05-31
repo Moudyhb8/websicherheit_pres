@@ -1,0 +1,6 @@
+\babel@toc {english}{}\relax 
+\beamer@sectionintoc {1}{Background}{4}{1}{1}
+\beamer@sectionintoc {2}{Concept}{7}{2}{2}
+\beamer@sectionintoc {3}{Paper Section 4}{13}{3}{3}
+\beamer@sectionintoc {4}{Course Material}{19}{4}{4}
+\beamer@sectionintoc {5}{Wrap-up}{21}{5}{5}

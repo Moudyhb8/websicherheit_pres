@@ -1,0 +1,407 @@
+================================================================================
+SCRIPT GADGETS – SPEAKER SCRIPT FOR EACH SLIDE (~15 minutes)
+Source: Lekies et al., CCS 2017 (paper.pdf)
+Slides: DS_LaTeX_Beamer_03_2026/main.pdf
+================================================================================
+
+Note: Part slides (chapter dividers) are transitions only -- about 5–10 seconds each.
+Content slides: roughly 45–60 seconds; bypass slides can run a bit longer.
+
+
+--------------------------------------------------------------------------------
+SLIDE 1 – Title slide
+--------------------------------------------------------------------------------
+On the slide:
+  Title "Script Gadgets", subtitle, your name, institute, date.
+
+Explanation:
+  Opening for a web security topic. Script gadgets are not a new XSS variant
+  using <script>; they abuse existing JavaScript on the page.
+
+What to say:
+  "Hello, today I'll present Script Gadgets -- how attackers can bypass XSS
+  defenses by reusing legitimate code from JavaScript frameworks. This talk is
+  based on the CCS 2017 paper by Lekies and colleagues."
+
+
+--------------------------------------------------------------------------------
+SLIDE 2 – Outline
+--------------------------------------------------------------------------------
+On the slide:
+  Table of contents: Introduction, Script Gadgets, Bypass, Case Study, Conclusion.
+
+Explanation:
+  Gives the audience a roadmap for the next 15 minutes.
+
+What to say:
+  "First, a short background on XSS and mitigations, then the script gadget
+  concept, how it bypasses the main defense classes, a brief course example with
+  Bootstrap, and finally countermeasures and takeaways."
+
+
+--------------------------------------------------------------------------------
+SLIDE 3 – Part "Introduction" (chapter slide)
+--------------------------------------------------------------------------------
+On the slide:
+  Chapter title "Introduction" only.
+
+Explanation:
+  Visual section break -- no new technical content.
+
+What to say:
+  "We start with background: why does this problem matter?"
+
+
+--------------------------------------------------------------------------------
+SLIDE 4 – Motivation
+--------------------------------------------------------------------------------
+On the slide:
+  XSS is common; mitigations as second line; focus on <script> and handlers;
+  thesis: not enough for modern JS apps.
+
+Explanation:
+  XSS remains widespread despite best practices. Many teams rely on filters,
+  sanitizers, or CSP instead of fixing every bug. The paper shows that second
+  line rests on a wrong assumption.
+
+What to say:
+  "Cross-site scripting has been a top vulnerability class for years. Because
+  perfect sanitization everywhere is hard, many sites use HTML sanitizers,
+  browser filters, WAFs, or CSP. Most of these look mainly for script tags and
+  event handlers like onclick. The paper argues that for modern JavaScript-heavy
+  sites, that is no longer enough -- because attackers may never inject a new
+  script at all."
+
+
+--------------------------------------------------------------------------------
+SLIDE 5 – Four Classes of XSS Mitigations
+--------------------------------------------------------------------------------
+On the slide:
+  1. HTML sanitizers  2. Browser XSS filters  3. WAF  4. CSP
+  Three strategies: request filtering, response sanitization, code filtering.
+
+Explanation:
+  The paper groups defenses into four product categories and three strategies.
+  You need this framing for the bypass section.
+
+What to say:
+  "Lekies divides mitigations into four classes: libraries like DOMPurify that
+  clean HTML; built-in browser filters; web application firewalls on the server;
+  and Content Security Policy, which defines what JavaScript may run. Behind
+  that are three ideas: block requests, sanitize responses, or filter code right
+  before execution. Script gadgets attack all three -- we'll see that next."
+
+
+--------------------------------------------------------------------------------
+SLIDE 6 – Part "Script Gadgets" (chapter slide)
+--------------------------------------------------------------------------------
+On the slide:
+  Chapter "Script Gadgets".
+
+What to say:
+  "Now the core idea: what is a script gadget?"
+
+
+--------------------------------------------------------------------------------
+SLIDE 7 – Definition: Script Gadget
+--------------------------------------------------------------------------------
+On the slide:
+  Definition in block; not injected; code reuse like ret2libc.
+
+Explanation:
+  A gadget is real app or library code steered into a dangerous path by
+  manipulated DOM markup. The attacker does not bring their own <script> --
+  they trigger existing logic.
+
+What to say:
+  "A script gadget is a piece of legitimate JavaScript on the page -- for
+  example from jQuery or Angular -- that runs when certain HTML is in the DOM.
+  The attacker only injects benign-looking markup; the harm happens when the
+  library reads it and processes it unsafely. The authors compare this to native
+  code reuse, like return-to-libc, but in the browser."
+
+
+--------------------------------------------------------------------------------
+SLIDE 8 – Benign HTML
+--------------------------------------------------------------------------------
+On the slide:
+  What mitigations allow through; example <div class="greeting">…
+
+Explanation:
+  "Benign HTML" has no direct script execution. Filters often allow it -- and
+  that is enough for gadgets.
+
+What to say:
+  "Defenses distinguish code that executes immediately from markup that looks
+  harmless: no script tags, no onclick handlers, no javascript: URLs. A simple
+  div with a class and bold text often passes. Gadget attacks build on that:
+  the payload looks fine to the filter and only becomes dangerous together with
+  framework code."
+
+
+--------------------------------------------------------------------------------
+SLIDE 9 – DOM Selectors
+--------------------------------------------------------------------------------
+On the slide:
+  Legitimate code reads DOM; tooltips as example; match activates gadget.
+
+Explanation:
+  Frameworks constantly query the DOM. Injected elements can hit the same
+  selectors as normal UI elements.
+
+What to say:
+  "Benign HTML does not execute by itself. But almost every modern page has
+  JavaScript that reads the DOM -- getElementById, querySelector, or jQuery.
+  The paper uses tooltips as an example: code finds elements with tooltip
+  attributes and injects content. If the attacker crafts markup that matches
+  that selector, the gadget path runs and their data reaches a dangerous sink
+  like innerHTML or eval."
+
+
+--------------------------------------------------------------------------------
+SLIDE 10 – Attack Outline
+--------------------------------------------------------------------------------
+On the slide:
+  Four steps: Injection → Mitigation → Gadget → Execution.
+
+Explanation:
+  Standard attack chain from the paper -- good to memorize and to explain demos.
+
+What to say:
+  "The flow is always similar: the attacker injects HTML via an XSS bug --
+  stored or reflected. The mitigation sees no classic script, so the markup
+  stays. When the page loads, a library gadget picks up the injected data and
+  turns it into executable code. In the end, attacker-controlled JavaScript runs
+  even though no script tag ever passed the filter."
+
+
+--------------------------------------------------------------------------------
+SLIDE 11 – Gadget Types
+--------------------------------------------------------------------------------
+On the slide:
+  String manipulation, element construction, function creation; chaining.
+
+Explanation:
+  Different gadgets play different roles in a chain, like ROP gadgets.
+
+What to say:
+  "The paper classifies gadgets by what they do. String gadgets normalize
+  attributes -- for example data-ng becomes something Angular treats as a
+  directive. Element gadgets create new script elements -- known from jQuery
+  globalEval. Function gadgets build new Function -- relevant with CSP
+  unsafe-eval. Real attacks chain several gadgets until they get full code
+  execution."
+
+
+--------------------------------------------------------------------------------
+SLIDE 12 – Part "Bypassing Mitigations" (chapter slide)
+--------------------------------------------------------------------------------
+What to say:
+  "Now that we know what gadgets are: how do they bypass the defenses from
+  Section 4 of the paper?"
+
+
+--------------------------------------------------------------------------------
+SLIDE 13 – Bypass Strategy (Overview)
+--------------------------------------------------------------------------------
+On the slide:
+  Different tags/attributes; three strategies mapped briefly.
+
+Explanation:
+  Bridge slide connecting mitigation classes to gadget logic.
+
+What to say:
+  "The idea is the same everywhere: instead of classic XSS signatures, use HTML
+  that filters allow but libraries find dangerous. For request filters, that's
+  innocuous data attributes. For sanitizers, whitelisted markup the library
+  later escalates. For CSP, everything runs through already trusted code --
+  which is why strict-dynamic alone is risky."
+
+
+--------------------------------------------------------------------------------
+SLIDE 14 – Bypass: Request Filtering
+--------------------------------------------------------------------------------
+On the slide:
+  WAF/NoScript; detected patterns; data-html, data-bind; Knockout Listing 13.
+
+Explanation:
+  WAFs look for known attack patterns. Gadgets avoid them or split the exploit.
+
+What to say:
+  "Request filtering -- ModSecurity or NoScript -- blocks typical attacks:
+  script, onerror, eval, access to document.cookie. Gadgets use allowed
+  attributes like data-bind or data-html instead. In the Knockout example in the
+  paper, the exploit is split into two harmless data-bind expressions; alone
+  they look fine, together they redirect to javascript:alert. The filter does
+  not see the combined attack."
+
+
+--------------------------------------------------------------------------------
+SLIDE 15 – Bypass: Response Sanitization
+--------------------------------------------------------------------------------
+On the slide:
+  DOMPurify, IE filter; whitelisted attributes; jQuery Mobile Listing 14.
+
+Explanation:
+  Sanitizers remove "bad" HTML but leave "safe" markup. Frameworks can turn
+  that into an attack afterward.
+
+What to say:
+  "Response sanitization -- DOMPurify or the old IE XSS filter -- cleans the
+  response. For sanitizers, gadgets must abuse allowed attributes like class or
+  id. The famous jQuery Mobile case: DOMPurify thinks data-role=popup is safe,
+  but jQuery Mobile interprets the id and builds an HTML comment -- the
+  attacker breaks out with --> and runs script. The sanitizer only saw the
+  input, not the combination with the library."
+
+
+--------------------------------------------------------------------------------
+SLIDE 16 – Bypass: Code Filtering (CSP)
+--------------------------------------------------------------------------------
+On the slide:
+  unsafe-eval, strict-dynamic, expression parsers; 13/16 frameworks.
+
+Explanation:
+  CSP trusts only certain scripts. Gadgets run in the context of trusted libraries.
+
+What to say:
+  "For CSP and the XSS Auditor, it's about trust: what may execute? With
+  unsafe-eval, template gadgets like Underscore can use eval. With
+  strict-dynamic, trusted code may create new script tags -- jQuery does that
+  often. With strict nonce CSP, expression parsers in Angular or Polymer help.
+  The authors found a strict-dynamic bypass in 13 of 16 frameworks -- CSP alone
+  is not a guarantee."
+
+
+--------------------------------------------------------------------------------
+SLIDE 17 – Empirical Results
+--------------------------------------------------------------------------------
+On the slide:
+  16 libraries; gadgets almost everywhere; Alexa study; 19.88%; millions of sinks.
+
+Explanation:
+  Shows real-world relevance, not just theory.
+
+What to say:
+  "This is not only theory: 16 popular libraries were checked manually -- jQuery,
+  Angular, Vue, Bootstrap, and others. Almost all had usable gadgets; React was
+  an exception. They also crawled the Alexa top 5000 with nearly 650,000 URLs.
+  Conservatively, they verified gadgets on almost 20 percent of domains. Script
+  gadgets are widespread on the real web."
+
+
+--------------------------------------------------------------------------------
+SLIDE 18 – Part "Case Study" (chapter slide)
+--------------------------------------------------------------------------------
+What to say:
+  "Briefly, a course example that illustrates the paper -- without re-explaining
+  the whole theory."
+
+
+--------------------------------------------------------------------------------
+SLIDE 19 – Example: Bootstrap Tooltip
+--------------------------------------------------------------------------------
+On the slide:
+  Stored XSS; Bootstrap tooltip; sanitize false; hover; img onerror + fetch.
+
+Explanation:
+  Ties to pdf_from_friends.pdf -- useful if you must show the course app live.
+
+What to say:
+  "Our course documentation shows this with Bootstrap: a stored XSS flaw saves
+  HTML in a button's title attribute. Bootstrap tooltips render that as HTML.
+  With sanitize set to false, internal protection is off -- then something like an
+  img tag with onerror can fetch cookies to an attacker server. The trigger is
+  often hovering over an innocent-looking Upload Photo button. That's exactly
+  the paper chain: benign markup, trusted library, code execution -- in a
+  concrete lab scenario."
+
+
+--------------------------------------------------------------------------------
+SLIDE 20 – Part "Conclusion" (chapter slide)
+--------------------------------------------------------------------------------
+What to say:
+  "To close: what can developers and operators do, and what should we remember?"
+
+
+--------------------------------------------------------------------------------
+SLIDE 21 – Countermeasures
+--------------------------------------------------------------------------------
+On the slide:
+  Encoding/sanitization; sanitize true; CSP caveats; defense in depth; PoC repo.
+
+Explanation:
+  Practical recommendations from the paper and case study.
+
+What to say:
+  "First, fix XSS at the source -- encode input in the right context before it
+  hits the DOM. Second, don't turn off library security; for Bootstrap keep
+  sanitize on and don't put user HTML in tooltips. Third, CSP helps but
+  question unsafe-eval and strict-dynamic carefully. Fourth, defense in depth:
+  sanitizer plus CSP plus safe APIs. For more examples, Google published many
+  proofs of concept under security-research-pocs."
+
+
+--------------------------------------------------------------------------------
+SLIDE 22 – Takeaways
+--------------------------------------------------------------------------------
+On the slide:
+  Key message in alert block; three bullets.
+
+Explanation:
+  Summary for examiners and audience.
+
+What to say:
+  "The central message: the old idea that attack code always looks like a script
+  is wrong. Gadgets bypass all four mitigation classes. Trusted frameworks can
+  become part of the attack surface. Mitigations matter, but they don't replace
+  fixing the underlying XSS vulnerability or writing secure code."
+
+
+--------------------------------------------------------------------------------
+SLIDE 23 – Questions?
+--------------------------------------------------------------------------------
+On the slide:
+  Thank you; reference to Lekies CCS 2017.
+
+What to say:
+  "Thank you for your attention. Any questions?"
+  (If silent: offer to show the course lab demo if required.)
+
+
+--------------------------------------------------------------------------------
+SLIDE 24 – References
+--------------------------------------------------------------------------------
+On the slide:
+  Bibliography (Lekies et al., optional friends demo).
+
+Explanation:
+  Read only if asked; often skip.
+
+What to say:
+  "The main source is the CCS 2017 paper by Lekies et al. -- on the slide. The
+  Bootstrap example is from our course documentation."
+  (Or skip this slide if you are out of time.)
+
+
+================================================================================
+TIMING (guideline)
+================================================================================
+  Slides 1–2:        ~1.5 min
+  Slides 3–5:        ~2.5 min   (Introduction)
+  Slides 6–11:       ~5 min     (Concept)
+  Slides 12–17:      ~4.5 min   (Bypass + study)
+  Slides 18–19:      ~1.5 min   (Bootstrap example)
+  Slides 20–23:      ~2 min     (Conclusion + questions)
+  Buffer / Q&A:      ~1 min
+  TOTAL:             ~15 min
+
+================================================================================
+PRESENTATION TIPS
+================================================================================
+  • On Attack Outline (slide 10), walk through the four steps with your hand.
+  • Say the numbers 13/16 and 19.88% slowly and clearly on slides 16–17.
+  • Expand slide 19 only if you must demo the course application.
+  • Keep paper.pdf handy: Sections 3.4 and 4.2–4.4 for follow-up questions.
+
+================================================================================

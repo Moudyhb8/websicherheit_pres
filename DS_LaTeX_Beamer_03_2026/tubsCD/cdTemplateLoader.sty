@@ -1,0 +1,24 @@
+
+
+\NeedsTeXFormat{LaTeX2e}%
+\ProvidesPackage{tubsCD/cdTemplateLoader}[2025/03/18 Integration for Templates in the CD]%
+
+% ===================================================================================
+% This is the template loader definition file.
+% It loads the template that is wanted in the class call.
+%
+% However, the final page is assembled in the tubscd.cls file.
+%
+% ===================================================================================
+
+\ifboolexpr{test {\ifdefstring{\tubs@template}{Praesentation}} or %
+              test {\ifdefstring{\tubs@template}{presentation}} or %
+              test {\ifdefstring{\tubs@template}{beamer}}}{%
+    \input{templates/Praesentation}
+}{\ifdefstring{\tubs@template}{off}{%
+    % don't load anything
+    % but load a geometry layout
+    \tuPlainGeometry
+}{% unknown name
+    \ClassWarning{tubscd}{Attempted to load unknown template. Please refer to cdTemplateLoader.sty for all options or on how to include a custom template}%
+}}%

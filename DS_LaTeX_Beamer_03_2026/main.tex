@@ -1,0 +1,227 @@
+\documentclass[%
+    font=nexus,
+    aspectratio=169,
+    language=english
+]{tubsCD/tubscd}
+
+\usepackage{hyperref}
+
+\begin{document}
+
+\begin{frame}[plain]
+\titlepage
+\end{frame}
+
+\begin{frame}{Outline}
+  \tableofcontents
+\end{frame}
+
+\part{Introduction}
+
+\begin{frame}[plain]
+  \partpage
+\end{frame}
+
+\section{Background}
+
+\begin{frame}{Motivation}
+  \begin{itemize}
+    \item \textbf{Cross-Site Scripting (XSS)} has ranked among the most common web vulnerabilities for years \citep{lekies2017scriptgadgets}.
+    \item Despite research and training, incidence remains high -- many apps rely on \textbf{mitigations} as a second line of defense.
+    \item These mechanisms mostly target \texttt{<script>} tags and event handlers.
+    \item \textbf{Paper's thesis:} That is no longer enough for modern JavaScript applications.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Four Classes of XSS Mitigations}
+  Per \cite{lekies2017scriptgadgets} (Section~2.3):
+  \begin{enumerate}
+    \item \textbf{HTML sanitizers} (DOMPurify, Google Closure)
+    \item \textbf{Browser XSS filters} (Chrome, Edge, NoScript)
+    \item \textbf{Web Application Firewalls} (ModSecurity CRS)
+    \item \textbf{Content Security Policy (CSP)}
+  \end{enumerate}
+  \vspace{0.4em}
+  Three underlying strategies:
+  request filtering, response sanitization, code filtering.
+\end{frame}
+
+\part{Script Gadgets}
+
+\begin{frame}[plain]
+  \partpage
+\end{frame}
+
+\section{Concept}
+
+\begin{frame}{Definition: Script Gadget}
+  \begin{block}{Script Gadget \citep{lekies2017scriptgadgets} (Section~3.3)}
+    A fragment of \textbf{legitimate} JavaScript on the site, triggered by \textbf{benign HTML} in the document, that processes attacker data in an unsafe way.
+  \end{block}
+  \begin{itemize}
+    \item Not injected by the attacker -- already present in app or library code.
+    \item Introduces \textbf{code-reuse attacks} on the web (analogy: return-to-libc).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Benign HTML}
+  Mitigations block directly executable code but often allow \citep{lekies2017scriptgadgets} (Section~3.1):
+  \begin{itemize}
+    \item No \texttt{<script>}, no inline handlers
+    \item No \texttt{javascript:}/\texttt{data:} URLs in \texttt{src}/\texttt{href}
+    \item No executable tags such as \texttt{<link rel=import>}, \texttt{<meta>}, \texttt{<style>}
+  \end{itemize}
+  \begin{exampleblock}{Listing 1 -- benign for filters}
+    \small\texttt{<div class="greeting"><b>Hello</b> world!</div>}
+  \end{exampleblock}
+\end{frame}
+
+\begin{frame}{DOM Selectors}
+  Benign markup alone does not execute code (Section~3.2):
+  \begin{itemize}
+    \item Legitimate code reads the DOM (\texttt{getElementById}, \texttt{querySelector}, jQuery).
+    \item Paper example: elements with \textbf{tooltip} attributes are decorated.
+    \item Injected markup \textbf{matches} selectors $\rightarrow$ gadget path activates.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Attack Outline}
+  Four steps \citep{lekies2017scriptgadgets} (Section~3.4):
+  \begin{enumerate}
+    \item \textbf{Injection} -- benign HTML (stored/reflected XSS)
+    \item \textbf{Mitigation} -- no direct script detected, markup remains
+    \item \textbf{Gadget} -- trusted code transforms the payload
+    \item \textbf{Execution} -- attacker-controlled JavaScript runs
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}{Gadget Types}
+  Classification (Section~3.5):
+  \begin{itemize}
+    \item \textbf{String manipulation} -- e.g.\ \texttt{data-*} $\rightarrow$ framework attributes (AngularJS, Polymer)
+    \item \textbf{Element construction} -- new \texttt{<script>} (jQuery \texttt{\$.globalEval})
+    \item \textbf{Function creation} -- \texttt{new Function(...)}; often combined with \texttt{unsafe-eval} CSP
+  \end{itemize}
+  Complex attacks \textbf{chain} multiple gadgets.
+\end{frame}
+
+\part{Bypassing Mitigations}
+
+\begin{frame}[plain]
+  \partpage
+\end{frame}
+
+\section{Paper Section 4}
+
+\begin{frame}{Bypass Strategy (Overview)}
+  Gadgets use \textbf{different HTML tags/attributes} than classic XSS payloads \citep{lekies2017scriptgadgets}:
+  \begin{itemize}
+    \item Request filtering: only ``evil'' patterns, not gadget paths
+    \item Response sanitization: whitelist keeps markup; library makes it dangerous
+    \item Code filtering (CSP): execution via \textbf{trusted} code
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Bypass: Request Filtering}
+  WAFs, NoScript (Section~4.2):
+  \begin{itemize}
+    \item Detect \texttt{<script>}, \texttt{onerror}, \texttt{eval}, \texttt{document.cookie}, \ldots
+    \item Gadgets use \textbf{allowed} attributes (\texttt{data-html}, \texttt{data-bind}, \ldots)
+    \item Frameworks split exploits (Knockout example, Listing~13): harmless parts together = attack
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Bypass: Response Sanitization}
+  HTML sanitizers, IE/Edge XSS filter (Section~4.3):
+  \begin{itemize}
+    \item Sanitizer: only whitelisted attributes (\texttt{class}, \texttt{id}) -- gadget abuses these
+    \item jQuery Mobile + DOMPurify (Listing~14): \texttt{data-role=popup} injects comment $\rightarrow$ escape $\rightarrow$ XSS
+    \item Gadgets are ``safe'' by definition until library logic activates them
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Bypass: Code Filtering (CSP)}
+  CSP and XSS Auditor (Section~4.4):
+  \begin{itemize}
+    \item \texttt{unsafe-eval}: gadgets using \texttt{eval}/templates (e.g.\ Underscore)
+    \item \texttt{strict-dynamic}: trusted libs create new \texttt{<script>} elements (jQuery)
+    \item Nonce/whitelist CSP: expression parsers in AngularJS, Aurelia, Polymer
+    \item \textbf{13/16} frameworks studied: bypass of \texttt{strict-dynamic}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Empirical Results}
+  \begin{itemize}
+    \item 16 JS libraries/frameworks analyzed manually (jQuery, AngularJS, Vue, Bootstrap, \ldots)
+    \item Gadgets in \textbf{almost all}; React had no usable gadgets
+    \item Automated study: Alexa Top~5000, $\sim$650\,000 URLs
+    \item \textbf{19.88\%} of domains: verified gadgets (conservative lower bound)
+    \item 4\,352\,491 sink executions with DOM-sourced data measured
+  \end{itemize}
+  \small \cite{lekies2017scriptgadgets}
+\end{frame}
+
+\part{Case Study}
+
+\begin{frame}[plain]
+  \partpage
+\end{frame}
+
+\section{Course Material}
+
+\begin{frame}{Example: Bootstrap Tooltip}
+  Supplementary course example \cite{friendsDemo2026} -- illustrates the paper:
+  \begin{itemize}
+    \item \textbf{Stored XSS:} unsanitized HTML in profile/tooltip \texttt{title}
+    \item \textbf{Gadget:} Bootstrap renders tooltip HTML (trusted library)
+    \item \textbf{Bypass:} \texttt{sanitize: false} disables internal allowlist protection
+    \item Trigger on hover; exfiltration e.g.\ via \texttt{<img onerror>} + \texttt{fetch}
+  \end{itemize}
+  \vspace{0.3em}
+  \small Maps to Paper Sections~3--4; use the course lab app for a live demo if required.
+\end{frame}
+
+\part{Conclusion}
+
+\begin{frame}[plain]
+  \partpage
+\end{frame}
+
+\section{Wrap-up}
+
+\begin{frame}{Countermeasures}
+  \begin{itemize}
+    \item Fix the flaw: context-aware encoding/sanitization \textbf{before} the DOM
+    \item Do not disable library defaults (\texttt{sanitize: true})
+    \item \textbf{CSP} helps but is not enough alone: review \texttt{strict-dynamic} and \texttt{unsafe-eval}
+    \item Defense in depth: sanitizer + CSP + safe API usage
+    \item PoC collection: \url{https://github.com/google/security-research-pocs}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Takeaways}
+  \begin{alertblock}{Key message \citep{lekies2017scriptgadgets}}
+    The assumption ``injected code $\neq$ benign markup'' is false in modern web apps.
+  \end{alertblock}
+  \begin{itemize}
+    \item Script gadgets bypass all four mitigation classes.
+    \item Trusted frameworks can be abused for XSS execution.
+    \item Secure development is still required -- mitigations do not replace it.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Questions?}
+  \centering
+  \Large Thank you for your attention!
+
+  \vspace{1em}
+  \normalsize
+  Lekies et al., CCS 2017 \cite{lekies2017scriptgadgets}
+\end{frame}
+
+\begin{frame}[allowframebreaks]{References}
+    \bibliographystyle{apalike}
+    \bibliography{bibliography.bib}
+\end{frame}
+
+\end{document}

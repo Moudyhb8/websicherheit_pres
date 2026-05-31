@@ -1,0 +1,16 @@
+\begin{thebibliography}{}
+
+\bibitem[Lekies et~al., 2017]{lekies2017scriptgadgets}
+Lekies, S., Kotowicz, K., Gro{\ss}, S., Vela~Nava, E.~A., and Johns, M. (2017).
+\newblock Code-reuse attacks for the web: Breaking cross-site scripting
+  mitigations via script gadgets.
+\newblock In {\em Proceedings of the 2017 ACM SIGSAC Conference on Computer and
+  Communications Security (CCS)}, pages 1709--1722.
+
+\bibitem[Novaes, 2026]{friendsDemo2026}
+Novaes, L. (2026).
+\newblock Script gadget demo: Bootstrap tooltip stored xss.
+\newblock Course documentation (pdf\_from\_friends.pdf).
+\newblock Lab demo: Bootstrap tooltip, ports 8000/9000.
+
+\end{thebibliography}

