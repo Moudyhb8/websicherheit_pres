@@ -24,13 +24,36 @@
 
 \section{Background}
 
+\begin{frame}{What is XSS?}
+  In \textbf{Cross-Site Scripting (XSS)}, an attacker tries to inject JavaScript into a webpage \citep{lekies2017scriptgadgets}.
+  \vspace{0.5em}
+  \begin{exampleblock}{Classic payload}
+    \texttt{<script>alert(1)</script>}
+  \end{exampleblock}
+  \vspace{0.3em}
+  XSS has ranked among the most common web vulnerabilities for years.
+\end{frame}
+
 \begin{frame}{Motivation}
-  \begin{itemize}
-    \item \textbf{Cross-Site Scripting (XSS)} has ranked among the most common web vulnerabilities for years \citep{lekies2017scriptgadgets}.
-    \item Despite research and training, incidence remains high -- many apps rely on \textbf{mitigations} as a second line of defense.
-    \item These mechanisms mostly target \texttt{<script>} tags and event handlers.
-    \item \textbf{Paper's thesis:} That is no longer enough for modern JavaScript applications.
-  \end{itemize}
+  Defenses block \textbf{obvious executable code} \citep{lekies2017scriptgadgets}:
+  \texttt{<script>}, event handlers, \texttt{javascript:} URLs.
+  \vspace{0.6em}
+  \textbf{Second line:} sanitizers, WAFs, browser filters, CSP.
+  \vspace{0.6em}
+  Modern apps also load \textbf{trusted JavaScript} from frameworks and libraries.
+\end{frame}
+
+\begin{frame}[plain]
+  \centering
+  \vfill
+  \vspace{1em}
+  {\Huge Can an attacker reuse this trusted code\\
+  instead of injecting new JavaScript?\par}
+  \vfill
+  {\Large\bfseries Answer:\par}
+  \vspace{0.8em}
+  {\LARGE Yes, this is the idea behind \textbf{Script Gadgets}\par}
+  \vfill
 \end{frame}
 
 \begin{frame}{Four Classes of XSS Mitigations}
@@ -44,6 +67,25 @@
   \vspace{0.4em}
   Three underlying strategies:
   request filtering, response sanitization, code filtering.
+  \vspace{0.3em}
+  \small Most of these look mainly for \textbf{directly executable} patterns -- not for abuse of existing site code.
+\end{frame}
+
+\begin{frame}{But What If No Script Is Injected?}
+  \begin{block}{Key question}
+    What if the attacker does \textbf{not} inject a \texttt{<script>} tag at all?
+  \end{block}
+  \vspace{0.3em}
+  \begin{enumerate}
+    \item Classic XSS blocked by mitigations
+    \item Attacker injects \textbf{harmless-looking HTML}
+    \item Existing website JavaScript processes it
+    \item A \textbf{Script Gadget} causes code execution
+  \end{enumerate}
+  \vspace{0.4em}
+  \small
+  Most XSS defenses assume: stop injected executable JavaScript.
+  Script gadgets show this assumption is \textbf{incomplete} when the site's own code does the dangerous work.
 \end{frame}
 
 \part{Script Gadgets}
@@ -56,10 +98,11 @@
 
 \begin{frame}{Definition: Script Gadget}
   \begin{block}{Script Gadget \citep{lekies2017scriptgadgets} (Section~3.3)}
-    A fragment of \textbf{legitimate} JavaScript on the site, triggered by \textbf{benign HTML} in the document, that processes attacker data in an unsafe way.
+    \textbf{Legitimate} JavaScript already present on the website, which can be triggered by attacker-controlled but \textbf{seemingly harmless HTML}.
   \end{block}
   \begin{itemize}
-    \item Not injected by the attacker -- already present in app or library code.
+    \item Not injected by the attacker (already in app or library code).
+    \item Processes attacker data in an \textbf{unsafe} way once the gadget path activates.
     \item Introduces \textbf{code-reuse attacks} on the web (analogy: return-to-libc).
   \end{itemize}
 \end{frame}
@@ -216,8 +259,7 @@
 
   \vspace{1em}
   \normalsize
-  Lekies et al., CCS 2017 \cite{lekies2017scriptgadgets}
-\end{frame}
+  \end{frame}
 
 \begin{frame}[allowframebreaks]{References}
     \bibliographystyle{apalike}

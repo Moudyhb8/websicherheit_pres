@@ -2,13 +2,13 @@
 
 | Time | Section | Content |
 |------|---------|---------|
-| 0:00–1:00 | Title, outline | Topic script gadgets, Lekies CCS 2017 |
-| 1:00–3:00 | Motivation, 4 mitigations | XSS, second line, three strategies |
-| 3:00–7:00 | Script gadgets Ch. 3 | Definition, benign HTML, DOM, attack outline, types |
-| 7:00–11:00 | Bypass Ch. 4 | Request filter, sanitizer, CSP; 13/16, 19.88% |
-| 11:00–12:00 | Bootstrap case study | Short course PDF illustration |
-| 12:00–14:00 | Countermeasures, takeaways | Encoding, CSP limits, PoC repo |
-| 14:00–15:00 | Questions | |
+| 0:00–1:00 | Title, outline | Opening sentence: defenses vs. trusted JS |
+| 1:00–3:30 | XSS, motivation, 4 mitigations, bridge | Classic payload → defenses → key question |
+| 3:30–7:30 | Script gadgets Ch. 3 | Definition (after bridge), benign HTML, DOM, attack outline, types |
+| 7:30–11:30 | Bypass Ch. 4 | Request filter, sanitizer, CSP; 13/16, 19.88% |
+| 11:30–12:30 | Bootstrap case study | Short course PDF illustration |
+| 12:30–14:30 | Countermeasures, takeaways | Encoding, CSP limits, PoC repo |
+| 14:30–15:00 | Questions | |
 
 ## Build
 
