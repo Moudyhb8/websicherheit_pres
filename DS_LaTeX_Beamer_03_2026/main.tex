@@ -1,269 +1,363 @@
 \documentclass[%
-    font=nexus,
-    aspectratio=169,
-    language=english
+font=nexus,
+aspectratio=169,
+language=english
 ]{tubsCD/tubscd}
 
 \usepackage{hyperref}
 
 \begin{document}
 
+% ---------------------------------------------------------
+% Title
+% ---------------------------------------------------------
+
 \begin{frame}[plain]
 \titlepage
 \end{frame}
 
+% ---------------------------------------------------------
+% Outline
+% ---------------------------------------------------------
+
 \begin{frame}{Outline}
-  \tableofcontents
+\begin{enumerate}
+\item XSS and modern defenses
+\item What are Script Gadgets?
+\item How mitigations are bypassed
+\item Case study and countermeasures
+\end{enumerate}
 \end{frame}
 
-\part{Introduction}
-
-\begin{frame}[plain]
-  \partpage
-\end{frame}
+% ---------------------------------------------------------
+% 1. Introduction
+% ---------------------------------------------------------
 
 \section{Background}
 
 \begin{frame}{What is XSS?}
-  In \textbf{Cross-Site Scripting (XSS)}, an attacker tries to inject JavaScript into a webpage \citep{lekies2017scriptgadgets}.
-  \vspace{0.5em}
-  \begin{exampleblock}{Classic payload}
-    \texttt{<script>alert(1)</script>}
-  \end{exampleblock}
-  \vspace{0.3em}
-  XSS has ranked among the most common web vulnerabilities for years.
+\textbf{Cross-Site Scripting (XSS)} means that an attacker gets JavaScript executed in another user's browser \citep{lekies2017scriptgadgets}.
+
+\vspace{0.7em}
+
+\begin{exampleblock}{Classic payload}
+\texttt{<script>alert(1)</script>}
+\end{exampleblock}
+
+\vspace{0.7em}
+
+\textbf{Goal:} the browser executes attacker-controlled code in the context of the vulnerable website.
 \end{frame}
 
 \begin{frame}{Motivation}
-  Defenses block \textbf{obvious executable code} \citep{lekies2017scriptgadgets}:
-  \texttt{<script>}, event handlers, \texttt{javascript:} URLs.
-  \vspace{0.6em}
-  \textbf{Second line:} sanitizers, WAFs, browser filters, CSP.
-  \vspace{0.6em}
-  Modern apps also load \textbf{trusted JavaScript} from frameworks and libraries.
+Modern defenses usually block \textbf{obvious executable code}:
+
+\vspace{0.5em}
+
+\begin{itemize}
+\item \texttt{<script>} tags
+\item inline event handlers such as \texttt{onerror} or \texttt{onclick}
+\item \texttt{javascript:} URLs
+\end{itemize}
+
+\vspace{0.7em}
+
+But modern web applications already contain a lot of \textbf{trusted JavaScript} from frameworks and libraries.
 \end{frame}
 
 \begin{frame}[plain]
-  \centering
-  \vfill
-  \vspace{1em}
-  {\Huge Can an attacker reuse this trusted code\\
-  instead of injecting new JavaScript?\par}
-  \vfill
-  {\Large\bfseries Answer:\par}
-  \vspace{0.8em}
-  {\LARGE Yes, this is the idea behind \textbf{Script Gadgets}\par}
-  \vfill
-\end{frame}
+\centering
+\vfill
 
-\begin{frame}{Four Classes of XSS Mitigations}
-  Per \cite{lekies2017scriptgadgets} (Section~2.3):
-  \begin{enumerate}
-    \item \textbf{HTML sanitizers} (DOMPurify, Google Closure)
-    \item \textbf{Browser XSS filters} (Chrome, Edge, NoScript)
-    \item \textbf{Web Application Firewalls} (ModSecurity CRS)
-    \item \textbf{Content Security Policy (CSP)}
-  \end{enumerate}
-  \vspace{0.4em}
-  Three underlying strategies:
-  request filtering, response sanitization, code filtering.
-  \vspace{0.3em}
-  \small Most of these look mainly for \textbf{directly executable} patterns -- not for abuse of existing site code.
+{\Huge Can an attacker reuse trusted website code\
+instead of injecting new JavaScript?\par}
+
+\vfill
+
+{\Large\bfseries Answer:\par}
+
+\vspace{0.8em}
+
+{\LARGE Yes, this is the idea behind\ \textbf{Script Gadgets}.\par}
+
+\vfill
 \end{frame}
 
 \begin{frame}{But What If No Script Is Injected?}
-  \begin{block}{Key question}
-    What if the attacker does \textbf{not} inject a \texttt{<script>} tag at all?
-  \end{block}
-  \vspace{0.3em}
-  \begin{enumerate}
-    \item Classic XSS blocked by mitigations
-    \item Attacker injects \textbf{harmless-looking HTML}
-    \item Existing website JavaScript processes it
-    \item A \textbf{Script Gadget} causes code execution
-  \end{enumerate}
-  \vspace{0.4em}
-  \small
-  Most XSS defenses assume: stop injected executable JavaScript.
-  Script gadgets show this assumption is \textbf{incomplete} when the site's own code does the dangerous work.
+\begin{center}
+\Large
+\textbf{Classic XSS blocked}
+\
+\vspace{0.4em}
+$\downarrow$
+\
+\vspace{0.4em}
+\textbf{Attacker injects harmless-looking HTML}
+\
+\vspace{0.4em}
+$\downarrow$
+\
+\vspace{0.4em}
+\textbf{Trusted website JavaScript reads it}
+\
+\vspace{0.4em}
+$\downarrow$
+\
+\vspace{0.4em}
+\textbf{Code execution}
+\end{center}
+
+\vspace{0.5em}
+
+\begin{block}{Key idea}
+Script Gadgets show that stopping injected scripts is not always enough when the site's own JavaScript does the dangerous work.
+\end{block}
 \end{frame}
 
-\part{Script Gadgets}
+% ---------------------------------------------------------
+% 2. Script Gadgets
+% ---------------------------------------------------------
 
-\begin{frame}[plain]
-  \partpage
-\end{frame}
-
-\section{Concept}
+\section{Script Gadgets}
 
 \begin{frame}{Definition: Script Gadget}
-  \begin{block}{Script Gadget \citep{lekies2017scriptgadgets} (Section~3.3)}
-    \textbf{Legitimate} JavaScript already present on the website, which can be triggered by attacker-controlled but \textbf{seemingly harmless HTML}.
-  \end{block}
-  \begin{itemize}
-    \item Not injected by the attacker (already in app or library code).
-    \item Processes attacker data in an \textbf{unsafe} way once the gadget path activates.
-    \item Introduces \textbf{code-reuse attacks} on the web (analogy: return-to-libc).
-  \end{itemize}
+\begin{block}{Script Gadget \citep{lekies2017scriptgadgets}}
+A Script Gadget is \textbf{trusted JavaScript already present on a website} that can be triggered by attacker-controlled but seemingly harmless HTML.
+\end{block}
+
+\vspace{0.7em}
+
+\begin{itemize}
+\item The attacker does \textbf{not} inject the JavaScript gadget itself.
+\item The gadget already exists in the application or a library.
+\item The attacker only provides input that activates an unsafe code path.
+\end{itemize}
 \end{frame}
 
-\begin{frame}{Benign HTML}
-  Mitigations block directly executable code but often allow \citep{lekies2017scriptgadgets} (Section~3.1):
-  \begin{itemize}
-    \item No \texttt{<script>}, no inline handlers
-    \item No \texttt{javascript:}/\texttt{data:} URLs in \texttt{src}/\texttt{href}
-    \item No executable tags such as \texttt{<link rel=import>}, \texttt{<meta>}, \texttt{<style>}
-  \end{itemize}
-  \begin{exampleblock}{Listing 1 -- benign for filters}
-    \small\texttt{<div class="greeting"><b>Hello</b> world!</div>}
-  \end{exampleblock}
+\begin{frame}{Tiny Example}
+The attacker injects harmless-looking HTML:
+
+\vspace{0.4em}
+
+\begin{exampleblock}{Injected markup}
+\texttt{<div data-cmd="alert(1)"></div>}
+\end{exampleblock}
+
+\vspace{0.8em}
+
+The website already contains JavaScript like this:
+
+\vspace{0.4em}
+
+\begin{exampleblock}{Existing trusted code}
+\texttt{eval(element.dataset.cmd);}
+\end{exampleblock}
+
+\vspace{0.8em}
+
+\textbf{Result:} the attacker did not inject a \texttt{<script>} tag, but code still executes.
 \end{frame}
 
-\begin{frame}{DOM Selectors}
-  Benign markup alone does not execute code (Section~3.2):
-  \begin{itemize}
-    \item Legitimate code reads the DOM (\texttt{getElementById}, \texttt{querySelector}, jQuery).
-    \item Paper example: elements with \textbf{tooltip} attributes are decorated.
-    \item Injected markup \textbf{matches} selectors $\rightarrow$ gadget path activates.
-  \end{itemize}
-\end{frame}
+\begin{frame}{How Does the Gadget Activate?}
+Harmless markup alone does not execute code.
 
-\begin{frame}{Attack Outline}
-  Four steps \citep{lekies2017scriptgadgets} (Section~3.4):
-  \begin{enumerate}
-    \item \textbf{Injection} -- benign HTML (stored/reflected XSS)
-    \item \textbf{Mitigation} -- no direct script detected, markup remains
-    \item \textbf{Gadget} -- trusted code transforms the payload
-    \item \textbf{Execution} -- attacker-controlled JavaScript runs
-  \end{enumerate}
+\vspace{0.7em}
+
+The problem appears when legitimate JavaScript reads the DOM:
+
+\vspace{0.4em}
+
+\begin{itemize}
+\item \texttt{getElementById(...)}
+\item \texttt{querySelector(...)}
+\item jQuery selectors
+\item framework-specific DOM processing
+\end{itemize}
+
+\vspace{0.7em}
+
+If injected markup matches a selector, the trusted code may process attacker-controlled data.
 \end{frame}
 
 \begin{frame}{Gadget Types}
-  Classification (Section~3.5):
-  \begin{itemize}
-    \item \textbf{String manipulation} -- e.g.\ \texttt{data-*} $\rightarrow$ framework attributes (AngularJS, Polymer)
-    \item \textbf{Element construction} -- new \texttt{<script>} (jQuery \texttt{\$.globalEval})
-    \item \textbf{Function creation} -- \texttt{new Function(...)}; often combined with \texttt{unsafe-eval} CSP
-  \end{itemize}
-  Complex attacks \textbf{chain} multiple gadgets.
+Common types described by \cite{lekies2017scriptgadgets}:
+
+\vspace{0.5em}
+
+\begin{itemize}
+\item \textbf{String manipulation}\
+Attacker-controlled attributes are transformed into framework code.
+
+```
+\vspace{0.4em}
+
+\item \textbf{Element construction}\\
+Trusted JavaScript creates new elements, for example \texttt{<script>}.
+
+\vspace{0.4em}
+
+\item \textbf{Function creation}\\
+Trusted JavaScript uses dangerous APIs such as \texttt{eval} or \texttt{new Function}.
+```
+
+\end{itemize}
 \end{frame}
 
-\part{Bypassing Mitigations}
+% ---------------------------------------------------------
+% 3. Bypassing Mitigations
+% ---------------------------------------------------------
 
-\begin{frame}[plain]
-  \partpage
+\section{Bypassing Mitigations}
+
+\begin{frame}{Bypass Strategy}
+Script Gadgets use inputs that do not look like classic XSS payloads.
+
+\vspace{0.7em}
+
+\begin{itemize}
+\item \textbf{Request filters} look for evil patterns.
+\item \textbf{Sanitizers} may allow harmless-looking markup.
+\item \textbf{CSP} trusts already approved site scripts.
+\end{itemize}
+
+\vspace{0.7em}
+
+\begin{block}{Main problem}
+The dangerous behavior appears only after trusted application or library code processes the markup.
+\end{block}
 \end{frame}
 
-\section{Paper Section 4}
+\begin{frame}{Bypassing Filters and Sanitizers}
+Filters and sanitizers often block patterns such as:
 
-\begin{frame}{Bypass Strategy (Overview)}
-  Gadgets use \textbf{different HTML tags/attributes} than classic XSS payloads \citep{lekies2017scriptgadgets}:
-  \begin{itemize}
-    \item Request filtering: only ``evil'' patterns, not gadget paths
-    \item Response sanitization: whitelist keeps markup; library makes it dangerous
-    \item Code filtering (CSP): execution via \textbf{trusted} code
-  \end{itemize}
+\vspace{0.4em}
+
+\begin{exampleblock}{Blocked}
+\texttt{<script>}, \texttt{onerror}, \texttt{eval}, \texttt{document.cookie}
+\end{exampleblock}
+
+\vspace{0.8em}
+
+But a gadget payload may use allowed attributes:
+
+\vspace{0.4em}
+
+\begin{exampleblock}{Allowed-looking}
+\texttt{data-html}, \texttt{data-bind}, \texttt{class}, \texttt{id}
+\end{exampleblock}
+
+\vspace{0.8em}
+
+These attributes become dangerous only when trusted JavaScript interprets them.
 \end{frame}
 
-\begin{frame}{Bypass: Request Filtering}
-  WAFs, NoScript (Section~4.2):
-  \begin{itemize}
-    \item Detect \texttt{<script>}, \texttt{onerror}, \texttt{eval}, \texttt{document.cookie}, \ldots
-    \item Gadgets use \textbf{allowed} attributes (\texttt{data-html}, \texttt{data-bind}, \ldots)
-    \item Frameworks split exploits (Knockout example, Listing~13): harmless parts together = attack
-  \end{itemize}
-\end{frame}
+\begin{frame}{Bypassing CSP}
+\textbf{Content Security Policy (CSP)} can block injected scripts.
 
-\begin{frame}{Bypass: Response Sanitization}
-  HTML sanitizers, IE/Edge XSS filter (Section~4.3):
-  \begin{itemize}
-    \item Sanitizer: only whitelisted attributes (\texttt{class}, \texttt{id}) -- gadget abuses these
-    \item jQuery Mobile + DOMPurify (Listing~14): \texttt{data-role=popup} injects comment $\rightarrow$ escape $\rightarrow$ XSS
-    \item Gadgets are ``safe'' by definition until library logic activates them
-  \end{itemize}
-\end{frame}
+\vspace{0.7em}
 
-\begin{frame}{Bypass: Code Filtering (CSP)}
-  CSP and XSS Auditor (Section~4.4):
-  \begin{itemize}
-    \item \texttt{unsafe-eval}: gadgets using \texttt{eval}/templates (e.g.\ Underscore)
-    \item \texttt{strict-dynamic}: trusted libs create new \texttt{<script>} elements (jQuery)
-    \item Nonce/whitelist CSP: expression parsers in AngularJS, Aurelia, Polymer
-    \item \textbf{13/16} frameworks studied: bypass of \texttt{strict-dynamic}
-  \end{itemize}
+But Script Gadgets reuse scripts that are already trusted by the page.
+
+\vspace{0.7em}
+
+\begin{itemize}
+\item \texttt{unsafe-eval}: enables gadgets using \texttt{eval} or template execution
+\item \texttt{strict-dynamic}: trusted libraries may create new \texttt{<script>} elements
+\item Framework parsers may evaluate attacker-controlled expressions
+\end{itemize}
+
+\vspace{0.7em}
+
+\begin{alertblock}{Important result}
+In the paper, \textbf{13 out of 16} studied frameworks allowed a bypass of \texttt{strict-dynamic}.
+\end{alertblock}
 \end{frame}
 
 \begin{frame}{Empirical Results}
-  \begin{itemize}
-    \item 16 JS libraries/frameworks analyzed manually (jQuery, AngularJS, Vue, Bootstrap, \ldots)
-    \item Gadgets in \textbf{almost all}; React had no usable gadgets
-    \item Automated study: Alexa Top~5000, $\sim$650\,000 URLs
-    \item \textbf{19.88\%} of domains: verified gadgets (conservative lower bound)
-    \item 4\,352\,491 sink executions with DOM-sourced data measured
-  \end{itemize}
-  \small \cite{lekies2017scriptgadgets}
+Lekies et al. manually analyzed 16 JavaScript libraries and frameworks.
+
+\vspace{0.7em}
+
+\begin{itemize}
+\item Gadgets were found in \textbf{almost all} analyzed frameworks.
+\item React had no usable gadgets in their study.
+\item In the Alexa Top 5000 study, \textbf{19.88%} of domains had verified gadgets.
+\end{itemize}
+
+\vspace{0.7em}
+
+\begin{block}{Takeaway}
+Script Gadgets are not only theoretical. They appeared in real frameworks and real websites.
+\end{block}
+
+\small \cite{lekies2017scriptgadgets}
 \end{frame}
 
-\part{Case Study}
+% ---------------------------------------------------------
+% 4. Case Study
+% ---------------------------------------------------------
 
-\begin{frame}[plain]
-  \partpage
-\end{frame}
-
-\section{Course Material}
+\section{Case Study}
 
 \begin{frame}{Example: Bootstrap Tooltip}
-  Supplementary course example \cite{friendsDemo2026} -- illustrates the paper:
-  \begin{itemize}
-    \item \textbf{Stored XSS:} unsanitized HTML in profile/tooltip \texttt{title}
-    \item \textbf{Gadget:} Bootstrap renders tooltip HTML (trusted library)
-    \item \textbf{Bypass:} \texttt{sanitize: false} disables internal allowlist protection
-    \item Trigger on hover; exfiltration e.g.\ via \texttt{<img onerror>} + \texttt{fetch}
-  \end{itemize}
-  \vspace{0.3em}
-  \small Maps to Paper Sections~3--4; use the course lab app for a live demo if required.
+The course example \cite{friendsDemo2026} illustrates the idea with Bootstrap tooltips.
+
+\vspace{0.7em}
+
+\begin{enumerate}
+\item A user profile contains unsanitized HTML in a tooltip \texttt{title}.
+\item Bootstrap reads the tooltip data.
+\item \texttt{sanitize: false} disables Bootstrap's internal protection.
+\item Bootstrap renders attacker-controlled HTML.
+\item The payload runs when the tooltip is triggered.
+\end{enumerate}
+
+\vspace{0.7em}
+
+\begin{block}{Why this is a Script Gadget}
+Bootstrap is trusted library code, but it processes attacker-controlled input in an unsafe configuration.
+\end{block}
 \end{frame}
 
-\part{Conclusion}
+% ---------------------------------------------------------
+% 5. Conclusion
+% ---------------------------------------------------------
 
-\begin{frame}[plain]
-  \partpage
-\end{frame}
-
-\section{Wrap-up}
+\section{Conclusion}
 
 \begin{frame}{Countermeasures}
-  \begin{itemize}
-    \item Fix the flaw: context-aware encoding/sanitization \textbf{before} the DOM
-    \item Do not disable library defaults (\texttt{sanitize: true})
-    \item \textbf{CSP} helps but is not enough alone: review \texttt{strict-dynamic} and \texttt{unsafe-eval}
-    \item Defense in depth: sanitizer + CSP + safe API usage
-    \item PoC collection: \url{https://github.com/google/security-research-pocs}
-  \end{itemize}
+\begin{itemize}
+\item Fix the original injection flaw.
+\item Use context-aware encoding and sanitization before data enters the DOM.
+\item Avoid dangerous APIs such as \texttt{eval}, \texttt{innerHTML}, and \texttt{new Function}.
+\item Do not disable library protections such as \texttt{sanitize: true}.
+\item Use CSP as defense in depth, not as the only defense.
+\end{itemize}
 \end{frame}
 
 \begin{frame}{Takeaways}
-  \begin{alertblock}{Key message \citep{lekies2017scriptgadgets}}
-    The assumption ``injected code $\neq$ benign markup'' is false in modern web apps.
-  \end{alertblock}
-  \begin{itemize}
-    \item Script gadgets bypass all four mitigation classes.
-    \item Trusted frameworks can be abused for XSS execution.
-    \item Secure development is still required -- mitigations do not replace it.
-  \end{itemize}
+\begin{alertblock}{Main message}
+Harmless-looking HTML can become dangerous when trusted JavaScript processes it unsafely.
+\end{alertblock}
+
+\vspace{0.7em}
+
+\begin{itemize}
+\item Script Gadgets reuse existing website or library code.
+\item They can bypass common XSS mitigations.
+\item Trusted frameworks can still be abused.
+\item Secure coding is still necessary.
+\end{itemize}
 \end{frame}
 
 \begin{frame}{Questions?}
-  \centering
-  \Large Thank you for your attention!
-
-  \vspace{1em}
-  \normalsize
-  \end{frame}
+\centering
+\Large Thank you for your attention!
+\end{frame}
 
 \begin{frame}[allowframebreaks]{References}
-    \bibliographystyle{apalike}
-    \bibliography{bibliography.bib}
+\bibliographystyle{apalike}
+\bibliography{bibliography.bib}
 \end{frame}
 
 \end{document}
