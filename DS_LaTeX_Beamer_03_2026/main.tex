@@ -83,37 +83,6 @@ instead of injecting new JavaScript?\par}
 \vfill
 \end{frame}
 
-\begin{frame}{But What If No Script Is Injected?}
-\begin{center}
-\Large
-\textbf{Classic XSS blocked}
-\
-\vspace{0.4em}
-$\downarrow$
-\
-\vspace{0.4em}
-\textbf{Attacker injects harmless-looking HTML}
-\
-\vspace{0.4em}
-$\downarrow$
-\
-\vspace{0.4em}
-\textbf{Trusted website JavaScript reads it}
-\
-\vspace{0.4em}
-$\downarrow$
-\
-\vspace{0.4em}
-\textbf{Code execution}
-\end{center}
-
-\vspace{0.5em}
-
-\begin{block}{Key idea}
-Script Gadgets show that stopping injected scripts is not always enough when the site's own JavaScript does the dangerous work.
-\end{block}
-\end{frame}
-
 % ---------------------------------------------------------
 % 2. Script Gadgets
 % ---------------------------------------------------------
@@ -132,6 +101,28 @@ A Script Gadget is \textbf{trusted JavaScript already present on a website} that
 \item The gadget already exists in the application or a library.
 \item The attacker only provides input that activates an unsafe code path.
 \end{itemize}
+\end{frame}
+
+\begin{frame}{But What If No Script Is Injected?}
+\begin{center}
+\footnotesize
+\setlength{\parskip}{0.2em}
+\begin{tabular}{@{}c@{}}
+\textbf{Classic XSS blocked} \\[0.2em]
+$\downarrow$ \\[0.2em]
+\textbf{Attacker injects harmless-looking HTML} \\[0.2em]
+$\downarrow$ \\[0.2em]
+\textbf{Trusted website JavaScript reads it} \\[0.2em]
+$\downarrow$ \\[0.2em]
+\textbf{Code execution} \\
+\end{tabular}
+\end{center}
+
+\vspace{0.5em}
+
+\begin{block}{Key idea}
+Script Gadgets show that stopping injected scripts is not always enough when the site's own JavaScript does the dangerous work.
+\end{block}
 \end{frame}
 
 \begin{frame}{Tiny Example}
@@ -185,10 +176,9 @@ Common types described by \cite{lekies2017scriptgadgets}:
 \vspace{0.5em}
 
 \begin{itemize}
-\item \textbf{String manipulation}\
+\item \textbf{String manipulation}\\
 Attacker-controlled attributes are transformed into framework code.
 
-```
 \vspace{0.4em}
 
 \item \textbf{Element construction}\\
@@ -198,7 +188,6 @@ Trusted JavaScript creates new elements, for example \texttt{<script>}.
 
 \item \textbf{Function creation}\\
 Trusted JavaScript uses dangerous APIs such as \texttt{eval} or \texttt{new Function}.
-```
 
 \end{itemize}
 \end{frame}
@@ -281,7 +270,7 @@ Lekies et al. manually analyzed 16 JavaScript libraries and frameworks.
 \begin{itemize}
 \item Gadgets were found in \textbf{almost all} analyzed frameworks.
 \item React had no usable gadgets in their study.
-\item In the Alexa Top 5000 study, \textbf{19.88%} of domains had verified gadgets.
+\item In the Alexa Top 5000 study, \textbf{19.88\%} of domains had verified gadgets.
 \end{itemize}
 
 \vspace{0.7em}
