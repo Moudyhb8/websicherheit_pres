@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999997 (MiKTeX 25.12) (preloaded format=xelatex 2026.1.22)  3 JUN 2026 20:52
+This is XeTeX, Version 3.141592653-2.6-0.999997 (MiKTeX 25.12) (preloaded format=xelatex 2026.1.22)  4 JUN 2026 12:29
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1402,10 +1402,8 @@ File: tubsCD/cdImages/TUBraunschweig_Siegel_R.pdf Graphic file (type pdf)
 <use tubsCD/cdImages/TUBraunschweig_Siegel_R.pdf>
 File: tubsCD/cdImages/logo_DS.png Graphic file (type bmp)
 <tubsCD/cdImages/logo_DS.png>
-File: tubsCD/cdImages/TUBraunschweig_Siegel_R.pdf Graphic file (type pdf)
-<use tubsCD/cdImages/TUBraunschweig_Siegel_R.pdf>
-File: tubsCD/cdImages/logo_DS.png Graphic file (type bmp)
-<tubsCD/cdImages/logo_DS.png>
+File: ../e_page.jpeg Graphic file (type bmp)
+<../e_page.jpeg>
  [9
 
 ]
@@ -1413,10 +1411,8 @@ File: tubsCD/cdImages/TUBraunschweig_Siegel_R.pdf Graphic file (type pdf)
 <use tubsCD/cdImages/TUBraunschweig_Siegel_R.pdf>
 File: tubsCD/cdImages/logo_DS.png Graphic file (type bmp)
 <tubsCD/cdImages/logo_DS.png>
-File: tubsCD/cdImages/TUBraunschweig_Siegel_R.pdf Graphic file (type pdf)
-<use tubsCD/cdImages/TUBraunschweig_Siegel_R.pdf>
-File: tubsCD/cdImages/logo_DS.png Graphic file (type bmp)
-<tubsCD/cdImages/logo_DS.png>
+File: ../e_flag.jpeg Graphic file (type bmp)
+<../e_flag.jpeg>
  [10
 
 ]
@@ -1424,10 +1420,8 @@ File: tubsCD/cdImages/TUBraunschweig_Siegel_R.pdf Graphic file (type pdf)
 <use tubsCD/cdImages/TUBraunschweig_Siegel_R.pdf>
 File: tubsCD/cdImages/logo_DS.png Graphic file (type bmp)
 <tubsCD/cdImages/logo_DS.png>
-File: tubsCD/cdImages/TUBraunschweig_Siegel_R.pdf Graphic file (type pdf)
-<use tubsCD/cdImages/TUBraunschweig_Siegel_R.pdf>
-File: tubsCD/cdImages/logo_DS.png Graphic file (type bmp)
-<tubsCD/cdImages/logo_DS.png>
+File: ../e_do.jpeg Graphic file (type bmp)
+<../e_do.jpeg>
  [11
 
 ]
@@ -1542,8 +1536,8 @@ Package rerunfilecheck Info: File `main.out' has not changed.
 (rerunfilecheck)             Checksum: AB54BD289330E4CC298C256DA8656F35;642.
  ) 
 Here is how much of TeX's memory you used:
- 30019 strings out of 402987
- 625964 string characters out of 5448524
+ 30024 strings out of 402987
+ 625925 string characters out of 5448524
  1059693 words of memory out of 5000000
  58125 multiletter control sequences out of 15000+600000
  651318 words of font info for 104 fonts, out of 8000000 for 9000

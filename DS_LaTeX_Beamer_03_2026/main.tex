@@ -149,47 +149,19 @@ The website already contains JavaScript like this:
 \textbf{Result:} the attacker did not inject a \texttt{<script>} tag, but code still executes.
 \end{frame}
 
-\begin{frame}{How Does the Gadget Activate?}
-Harmless markup alone does not execute code.
-
-\vspace{0.7em}
-
-The problem appears when legitimate JavaScript reads the DOM:
-
-\vspace{0.4em}
-
-\begin{itemize}
-\item \texttt{getElementById(...)}
-\item \texttt{querySelector(...)}
-\item jQuery selectors
-\item framework-specific DOM processing
-\end{itemize}
-
-\vspace{0.7em}
-
-If injected markup matches a selector, the trusted code may process attacker-controlled data.
+\begin{frame}[plain]
+\centering
+\includegraphics[width=\linewidth,height=0.92\textheight,keepaspectratio]{../e_page.jpeg}
 \end{frame}
 
-\begin{frame}{Gadget Types}
-Common types described by \cite{lekies2017scriptgadgets}:
+\begin{frame}[plain]
+\centering
+\includegraphics[width=\linewidth,height=0.92\textheight,keepaspectratio]{../e_flag.jpeg}
+\end{frame}
 
-\vspace{0.5em}
-
-\begin{itemize}
-\item \textbf{String manipulation}\\
-Attacker-controlled attributes are transformed into framework code.
-
-\vspace{0.4em}
-
-\item \textbf{Element construction}\\
-Trusted JavaScript creates new elements, for example \texttt{<script>}.
-
-\vspace{0.4em}
-
-\item \textbf{Function creation}\\
-Trusted JavaScript uses dangerous APIs such as \texttt{eval} or \texttt{new Function}.
-
-\end{itemize}
+\begin{frame}[plain]
+\centering
+\includegraphics[width=\linewidth,height=0.92\textheight,keepaspectratio]{../e_do.jpeg}
 \end{frame}
 
 % ---------------------------------------------------------
@@ -197,24 +169,6 @@ Trusted JavaScript uses dangerous APIs such as \texttt{eval} or \texttt{new Func
 % ---------------------------------------------------------
 
 \section{Bypassing Mitigations}
-
-\begin{frame}{Bypass Strategy}
-Script Gadgets use inputs that do not look like classic XSS payloads.
-
-\vspace{0.7em}
-
-\begin{itemize}
-\item \textbf{Request filters} look for evil patterns.
-\item \textbf{Sanitizers} may allow harmless-looking markup.
-\item \textbf{CSP} trusts already approved site scripts.
-\end{itemize}
-
-\vspace{0.7em}
-
-\begin{block}{Main problem}
-The dangerous behavior appears only after trusted application or library code processes the markup.
-\end{block}
-\end{frame}
 
 \begin{frame}{Bypassing Filters and Sanitizers}
 Filters and sanitizers often block patterns such as:
